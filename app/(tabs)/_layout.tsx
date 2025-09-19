@@ -1,33 +1,54 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: 'coral',
+        headerStyle: {
+          backgroundColor: '#F5F5F5',
+        },
+        headerShadowVisible: false,
+        tabBarStyle: {
+          backgroundColor: '#F5F5F5',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarActiveTintColor: '#6200EE',
+        tabBarInactiveTintColor: '#666666',
       }}
     >
       <Tabs.Screen
         name='index'
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => {
-            return focused ? (
-              <FontAwesome5 name='home' size={20} color={color} />
-            ) : (
-              <AntDesign name='home' size={20} color={color} />
+          title: "Today's Habits",
+          tabBarIcon: ({ color, size }) => {
+            return (
+              <MaterialCommunityIcons
+                name='calendar-today'
+                size={size}
+                color={color}
+              />
             );
           },
         }}
       />
       <Tabs.Screen
-        name='login'
+        name='streaks'
         options={{
-          title: 'Login',
+          title: 'Streaks',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 name='sign-in-alt' size={20} color={color} />
+            <MaterialCommunityIcons name='chart-line' size={20} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='add-habit'
+        options={{
+          title: 'Add Habit',
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name='plus-circle' size={20} color={color} />
           ),
         }}
       />
