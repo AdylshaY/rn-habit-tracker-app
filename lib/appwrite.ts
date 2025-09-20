@@ -11,11 +11,21 @@ const databases = new Databases(client);
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_DB_ID!;
 const HABITS_TABLE_NAME = process.env.EXPO_PUBLIC_HABITS_TABLE_NAME!;
+const HABIT_COMPLETIONS_TABLE_NAME =
+  process.env.EXPO_PUBLIC_HABIT_COMPLETIONS_TABLE_NAME!;
 
 interface RealTimeResponse {
   events: string[];
   payload: any;
 }
 
-export { account, client, DATABASE_ID, databases, HABITS_TABLE_NAME, RealTimeResponse };
+export {
+  account,
+  client,
+  DATABASE_ID,
+  databases,
+  HABIT_COMPLETIONS_TABLE_NAME,
+  HABITS_TABLE_NAME,
+  RealTimeResponse
+};
 

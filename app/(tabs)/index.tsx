@@ -2,29 +2,38 @@ import {
   client,
   DATABASE_ID,
   databases,
+  HABIT_COMPLETIONS_TABLE_NAME,
   HABITS_TABLE_NAME,
   RealTimeResponse,
 } from '@/lib/appwrite';
 import { useAuth } from '@/lib/auth-context';
-import { Habit } from '@/types/database.type';
+import { Habit, HabitCompletion } from '@/types/database.type';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Query } from 'react-native-appwrite';
+import { ID, Query } from 'react-native-appwrite';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Button, Surface, Text } from 'react-native-paper';
 
 export default function Index() {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [todayCompletions, setTodayCompletions] = useState<string[]>([]);
+
   const { user } = useAuth();
   const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({});
+
+  const isHabitCompleted = (habitId: string) => {
+    return todayCompletions.includes(habitId);
+  };
 
   useEffect(() => {
     if (!user) return;
 
-    const channel = `databases.${DATABASE_ID}.collections.${HABITS_TABLE_NAME}.documents`;
+    const habitsChannel = `databases.${DATABASE_ID}.collections.${HABITS_TABLE_NAME}.documents`;
+    const habitCompletionsChannel = `databases.${DATABASE_ID}.collections.${HABIT_COMPLETIONS_TABLE_NAME}.documents`;
+
     const habitsSubscription = client.subscribe(
-      channel,
+      habitsChannel,
       (response: RealTimeResponse) => {
         if (
           response.events.includes(
@@ -48,10 +57,25 @@ export default function Index() {
       }
     );
 
+    const habitCompletionsSubscription = client.subscribe(
+      habitCompletionsChannel,
+      (response: RealTimeResponse) => {
+        if (
+          response.events.includes(
+            'databases.*.collections.*.documents.*.create'
+          )
+        ) {
+          fetchTodayCompletions();
+        }
+      }
+    );
+
     fetchHabits();
+    fetchTodayCompletions();
 
     return () => {
       habitsSubscription();
+      habitCompletionsSubscription();
     };
   }, [user]);
 
@@ -60,10 +84,32 @@ export default function Index() {
       const response = await databases.listDocuments(
         DATABASE_ID,
         HABITS_TABLE_NAME,
-        [Query.equal('user_id', user?.$id ?? '')]
+        [Query.equal('user_id', user?.$id ?? ''), Query.orderDesc('created_at')]
       );
 
       setHabits(response.documents as Habit[]);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchTodayCompletions = async () => {
+    try {
+      if (!user) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        HABIT_COMPLETIONS_TABLE_NAME,
+        [
+          Query.equal('user_id', user?.$id ?? ''),
+          Query.greaterThan('completed_at', today.toISOString()),
+        ]
+      );
+      const habitCompletions = response.documents as HabitCompletion[];
+      setTodayCompletions(habitCompletions.map((hc) => hc.habit_id));
     } catch (error) {
       console.error(error);
     }
@@ -77,6 +123,35 @@ export default function Index() {
     }
   };
 
+  const handleCompleteHabit = async (id: string) => {
+    if (!user || todayCompletions.includes(id)) return;
+
+    try {
+      const habit = habits.find((habit) => habit.$id === id);
+      if (!habit) return;
+
+      const currentDate = new Date().toISOString();
+
+      await databases.createDocument(
+        DATABASE_ID,
+        HABIT_COMPLETIONS_TABLE_NAME,
+        ID.unique(),
+        {
+          habit_id: id,
+          user_id: user.$id,
+          completed_at: currentDate,
+        }
+      );
+
+      await databases.updateDocument(DATABASE_ID, HABITS_TABLE_NAME, id, {
+        last_completed: currentDate,
+        streak_count: habit.streak_count + 1,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const renderLeftActions = () => (
     <View style={styles.swipeActionLeft}>
       <MaterialCommunityIcons
@@ -87,13 +162,23 @@ export default function Index() {
     </View>
   );
 
-  const renderRightActions = () => (
+  const renderRightActions = (habitId: string) => (
     <View style={styles.swipeActionRight}>
-      <MaterialCommunityIcons
-        name='check-circle-outline'
-        size={32}
-        color='#FFFFFF'
-      />
+      {isHabitCompleted(habitId) ? (
+        <Text
+          style={{
+            color: '#FFFFFF',
+          }}
+        >
+          Completed
+        </Text>
+      ) : (
+        <MaterialCommunityIcons
+          name='check-circle-outline'
+          size={32}
+          color='#FFFFFF'
+        />
+      )}
     </View>
   );
 
@@ -124,16 +209,26 @@ export default function Index() {
               overshootLeft={false}
               overshootRight={false}
               renderLeftActions={renderLeftActions}
-              renderRightActions={renderRightActions}
+              renderRightActions={() => renderRightActions(habit.$id)}
               onSwipeableOpen={(direction) => {
                 if (direction === 'left') {
                   handleDeleteHabit(habit.$id);
                 }
 
+                if (direction === 'right') {
+                  handleCompleteHabit(habit.$id);
+                }
+
                 swipeableRefs.current[habit.$id]?.close();
               }}
             >
-              <Surface style={styles.card} elevation={0}>
+              <Surface
+                style={[
+                  styles.card,
+                  isHabitCompleted(habit.$id) && styles.cardCompleted,
+                ]}
+                elevation={0}
+              >
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle}>{habit.title}</Text>
                   <Text style={styles.cardDescription}>
@@ -263,5 +358,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     marginTop: 2,
     paddingRight: 16,
+  },
+  cardCompleted: {
+    opacity: 0.6,
   },
 });
