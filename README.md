@@ -4,10 +4,18 @@ A mobile application built with React Native and Expo to help you track your dai
 
 ## Features
 
-- User Authentication (Sign up, Login, Logout)
-- Create, Read, Update, and Delete habits
-- Track daily progress for each habit
-- Clean and intuitive user interface
+- **User Authentication:** Secure sign-up, login, and logout functionality.
+- **Habit Management:** Create, read, update, and delete habits.
+- **Daily Tracking:** Mark habits as completed for the day.
+- **Streak Counter:** Keep track of your consecutive days of success for each habit.
+- **Clean UI:** A simple and intuitive user interface built with React Native Paper.
+
+## Screens
+
+- **Login/Sign Up:** A simple authentication screen to get you started.
+- **Habits:** The main screen where you can see all your habits and mark them as complete.
+- **Add Habit:** A screen to add new habits to your list.
+- **Streaks:** A screen to view your current and longest streaks for each habit.
 
 ## Tech Stack
 
@@ -26,7 +34,7 @@ A mobile application built with React Native and Expo to help you track your dai
 ### Prerequisites
 
 - Node.js (v18 or newer)
-- Expo CLI
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
 - An Appwrite project
 
 ### Installation
@@ -35,7 +43,7 @@ A mobile application built with React Native and Expo to help you track your dai
 
     ```bash
     git clone https://github.com/adylshay/rn-habit-tracker-app.git
-    cd habit-tracker-app-rn
+    cd rn-habit-tracker-app
     ```
 
 2.  Install dependencies:
@@ -48,6 +56,10 @@ A mobile application built with React Native and Expo to help you track your dai
     ```env
     EXPO_PUBLIC_APPWRITE_ENDPOINT=<YOUR_PROJECT_ENDPOINT>
     EXPO_PUBLIC_APPWRITE_PROJECT_ID=<YOUR_PROJECT_ID>
+    EXPO_PUBLIC_APPWRITE_PLATFORM=<YOUR_APP_ID>
+    EXPO_PUBLIC_DB_ID=<YOUR_DATABASE_ID>
+    EXPO_PUBLIC_HABITS_TABLE_NAME=<YOUR_HABITS_COLLECTION_ID>
+    EXPO_PUBLIC_HABIT_COMPLETIONS_TABLE_NAME=<YOUR_COMPLETIONS_COLLECTION_ID>
     ```
 
 ### Running the Application
@@ -75,13 +87,30 @@ A mobile application built with React Native and Expo to help you track your dai
 .
 ├── app/                # Expo Router pages and layouts
 │   ├── (tabs)/         # Tab navigation layout and screens
+│   │   ├── _layout.tsx
+│   │   ├── add-habit.tsx
+│   │   ├── index.tsx
+│   │   └── streaks.tsx
 │   ├── _layout.tsx     # Root layout
 │   └── auth.tsx        # Authentication screen
 ├── assets/             # Images and other static assets
 ├── lib/                # Custom libraries and utilities
 │   ├── appwrite.ts     # Appwrite client configuration
 │   └── auth-context.tsx# Authentication context provider
+├── types/              # TypeScript type definitions
+│   └── appwrite.ts
+├── .env                # Environment variables
 ├── app.json            # Expo configuration
 ├── package.json        # Project dependencies and scripts
 └── tsconfig.json       # TypeScript configuration
 ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a pull request.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
