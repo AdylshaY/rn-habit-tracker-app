@@ -19,7 +19,7 @@ export default function Index() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [todayCompletions, setTodayCompletions] = useState<string[]>([]);
 
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({});
 
   const isHabitCompleted = (habitId: string) => {
@@ -188,8 +188,8 @@ export default function Index() {
         <Text variant='headlineSmall' style={styles.title}>
           Today&apos;s Habits
         </Text>
-        <Button mode='contained' icon='plus' onPress={() => {}}>
-          Add Habit
+        <Button mode='outlined' icon='logout' onPress={signOut}>
+          Logout
         </Button>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
